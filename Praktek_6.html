@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Modul Praktikum — Studi Kasus Login Sesi &amp; Dashboard Profil dengan SharedPreferences</title>
+<style>
+:root{
+  --primary:#3DDC84;
+  --primary-dark:#2db86f;
+  --secondary:#4285F4;
+  --danger:#d93025;
+  --dark:#1a1a2e;
+  --darker:#16213e;
+  --code-bg:#282c34;
+  --border:#dee2e6;
+  --shadow:0 4px 6px -1px rgba(0,0,0,.1),0 2px 4px -1px rgba(0,0,0,.06);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background:#f0f2f5;color:#333;line-height:1.7}
+.main-header{background:linear-gradient(135deg,var(--dark),var(--darker));color:#fff;padding:3rem 1rem;text-align:center}
+.main-header h1{font-size:2.3rem;margin-bottom:.5rem}
+.main-header .subtitle{font-size:1.05rem;opacity:.9;max-width:780px;margin:0 auto}
+.android-icon{font-size:4rem;margin-bottom:1rem}
+
+/* ===== Menu samping ===== */
+.content{margin-left:280px;min-height:100vh;display:flex;flex-direction:column}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:280px;background:linear-gradient(180deg,var(--dark),var(--darker));
+  color:#fff;overflow-y:auto;z-index:1100;padding:1.5rem 0 2rem;box-shadow:2px 0 12px rgba(0,0,0,.18)}
+.sidebar-brand{display:flex;align-items:center;gap:.75rem;padding:0 1.25rem 1.25rem;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:1rem}
+.sidebar-brand .brand-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.sidebar-brand .brand-title{font-size:1rem;font-weight:700;line-height:1.2}
+.sidebar-brand .brand-sub{font-size:.72rem;color:#9fb3c8;line-height:1.3}
+.sidebar-label{padding:.25rem 1.4rem;font-size:.68rem;letter-spacing:1.5px;text-transform:uppercase;color:#7c8ea3;margin-bottom:.35rem}
+.sidebar-nav{display:flex;flex-direction:column;gap:.15rem;padding:0 .75rem}
+.sidebar-nav a{display:flex;align-items:center;gap:.65rem;text-decoration:none;color:#c7d2dc;padding:.6rem .8rem;
+  border-radius:8px;font-size:.86rem;border-left:3px solid transparent;transition:background .2s,color .2s,border-color .2s}
+.sidebar-nav a .num{font-size:.7rem;font-weight:700;color:var(--primary);min-width:20px}
+.sidebar-nav a:hover{background:rgba(255,255,255,.08);color:#fff}
+.sidebar-nav a.active{background:rgba(61,220,132,.15);color:#fff;border-left-color:var(--primary);font-weight:600}
+.sidebar-foot{margin:1.5rem 1.25rem 0;padding-top:1rem;border-top:1px solid rgba(255,255,255,.12);
+  font-size:.72rem;color:#7c8ea3;line-height:1.5}
+.sidebar-toggle{display:none;position:fixed;top:14px;left:14px;z-index:1200;background:var(--dark);color:#fff;border:none;
+  width:46px;height:46px;border-radius:10px;font-size:1.3rem;cursor:pointer;box-shadow:var(--shadow-lg)}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1050}
+.sidebar-overlay.show{display:block}
+
+.container{max-width:1000px;margin:0 auto;padding:2rem 1.5rem;width:100%}
+section{scroll-margin-top:1.25rem}
+.card{background:#fff;border-radius:12px;padding:2rem;margin-bottom:2rem;box-shadow:var(--shadow)}
+.card-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:2px solid var(--primary)}
+.card-icon{width:50px;height:50px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#fff;flex-shrink:0}
+.card-title{font-size:1.6rem;color:var(--dark)}
+h2{color:var(--dark);margin:2rem 0 1rem;font-size:1.45rem}
+h3{color:var(--darker);margin:1.5rem 0 .75rem;font-size:1.15rem}
+h4{color:#b45309;margin:1.2rem 0 .5rem;font-size:1rem}
+p{margin-bottom:1rem;text-align:justify}
+ul,ol{margin-left:1.5rem;margin-bottom:1rem}
+li{margin-bottom:.5rem}
+.code-block{background:var(--code-bg);border-radius:8px;padding:1.5rem;margin:1rem 0;overflow-x:auto}
+.code-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:1px solid #444}
+.code-title{color:#abb2bf;font-size:.85rem;font-family:monospace}
+.code-lang{background:var(--primary);color:var(--dark);padding:.2rem .6rem;border-radius:4px;font-size:.75rem;font-weight:bold}
+pre{font-family:'Consolas','Monaco','Courier New',monospace;font-size:.88rem;line-height:1.6;color:#abb2bf;white-space:pre-wrap}
+code{font-family:'Consolas','Monaco','Courier New',monospace}
+.inline-code{background:#e9ecef;padding:.2rem .4rem;border-radius:4px;color:#d63384;font-size:.9em}
+.tag{color:#e06c75}.attr{color:#d19a66}.string{color:#98c379}.comment{color:#5c6370;font-style:italic}.keyword{color:#c678dd}
+.info-box{padding:1rem 1.5rem;border-radius:8px;margin:1rem 0;border-left:4px solid}
+.info-box.tip{background:#e8f5e9;border-color:var(--primary-dark)}
+.info-box.warning{background:#fff3e0;border-color:#ff9800}
+.info-box.note{background:#e3f2fd;border-color:var(--secondary)}
+.info-box.error{background:#fdecea;border-color:var(--danger)}
+.info-box-title{font-weight:bold;margin-bottom:.5rem}
+.table-wrapper{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden}
+th{background:var(--dark);color:#fff;padding:1rem;text-align:left;font-weight:600}
+td{padding:.875rem 1rem;border-bottom:1px solid var(--border);vertical-align:top}
+tbody tr:hover{background:#f8f9fa}
+.case-study{background:linear-gradient(135deg,#f5f7fa,#c3cfe2);border-radius:12px;padding:2rem;margin:2rem 0}
+.case-study-header{display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem}
+.case-number{width:40px;height:40px;background:var(--secondary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.2rem;flex-shrink:0}
+.step-list{counter-reset:step;list-style:none;margin-left:0}
+.step-list li{counter-increment:step;position:relative;padding-left:3rem;margin-bottom:1.5rem}
+.step-list li::before{content:counter(step);position:absolute;left:0;top:0;width:30px;height:30px;background:var(--primary);color:var(--dark);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:.9rem}
+.checklist{list-style:none;margin-left:0}
+.checklist li{padding:.7rem 1rem .7rem 2.6rem;background:#fff;border:1px solid var(--border);border-radius:8px;margin-bottom:.5rem;position:relative}
+.checklist li::before{content:"\2713";position:absolute;left:1rem;color:var(--primary-dark);font-weight:800}
+.main-footer{background:var(--dark);color:#fff;text-align:center;padding:2rem 1rem;margin-top:3rem}
+.scroll-top{position:fixed;bottom:2rem;right:2rem;width:50px;height:50px;background:var(--primary);color:var(--dark);border:none;border-radius:50%;font-size:1.5rem;cursor:pointer;box-shadow:var(--shadow-lg);opacity:0;visibility:hidden;transition:all .3s ease;z-index:999}
+.scroll-top.visible{opacity:1;visibility:visible}
+.scroll-top:hover{transform:translateY(-5px);background:var(--primary-dark)}
+
+/* ===== Mockup layar aplikasi ===== */
+.screens{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;margin:22px 0}
+figure.phone{margin:0;text-align:center}
+.phone-body{width:252px;height:498px;background:var(--dark);border-radius:30px;padding:9px;box-shadow:var(--shadow-lg);position:relative}
+.phone-notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:94px;height:16px;background:var(--dark);
+  border-bottom-left-radius:12px;border-bottom-right-radius:12px;z-index:20}
+.phone-screen{position:relative;width:100%;height:100%;border-radius:22px;overflow:hidden;background:#f8fafc}
+figure.phone figcaption{font-size:.8rem;color:#495057;font-weight:600;margin-top:.7rem;max-width:252px;margin-left:auto;margin-right:auto}
+.a-status{position:absolute;top:5px;left:0;right:0;display:flex;justify-content:space-between;padding:0 12px;
+  font-size:.55rem;color:#64748b;z-index:6}
+.a-body{position:absolute;inset:0;padding:26px 14px 14px;display:flex;flex-direction:column;gap:9px}
+.a-logo{width:54px;height:54px;border-radius:16px;margin:8px auto 0;font-size:1.5rem;
+  background:linear-gradient(135deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 14px rgba(45,184,111,.35)}
+.a-title{text-align:center;font-size:.9rem;font-weight:800;color:var(--dark)}
+.a-sub{text-align:center;font-size:.6rem;color:#6b7280}
+.a-label{font-size:.56rem;font-weight:700;color:#4b5563;margin-bottom:2px}
+.a-field{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:7px 9px;font-size:.64rem;color:#334155}
+.a-field.empty{color:#94a3b8}
+.a-field.err{border-color:#b3261e;background:#fff6f5}
+.a-msg{font-size:.53rem;color:#b3261e;font-weight:600;margin-top:2px}
+.a-check{display:flex;align-items:center;gap:6px;font-size:.6rem;color:#4b5563}
+.a-box{width:13px;height:13px;border:1.5px solid #94a3b8;border-radius:3px;display:flex;align-items:center;
+  justify-content:center;font-size:.5rem;color:#fff;flex-shrink:0}
+.a-box.on{background:var(--primary);border-color:var(--primary-dark)}
+.a-btn{background:var(--primary);color:#08301c;font-weight:800;border-radius:9px;padding:9px;text-align:center;font-size:.68rem}
+.a-btn.ghost{background:#fff;border:1px solid #cbd5e1;color:#475569;font-weight:700}
+.a-alert{background:#fdecea;border:1px solid #f5c2bd;color:#b3261e;font-size:.56rem;font-weight:600;border-radius:6px;padding:5px 8px;text-align:center}
+.a-hint{font-size:.53rem;color:#6b7280;text-align:center;margin-top:auto;background:#eef2f7;border-radius:8px;padding:7px;line-height:1.5}
+.a-toast{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(31,41,55,.94);color:#fff;
+  font-size:.55rem;padding:6px 12px;border-radius:999px;white-space:nowrap;z-index:8}
+/* mockup dashboard */
+.a-head{position:absolute;left:0;right:0;top:0;padding:26px 14px 16px;color:#fff;text-align:center;
+  background:linear-gradient(135deg,var(--dark),var(--darker));border-bottom-left-radius:18px;border-bottom-right-radius:18px}
+.a-avatar{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;overflow:hidden;border:3px solid rgba(255,255,255,.35)}
+.a-avatar svg{display:block;width:100%;height:100%}
+.a-head .nm{font-size:.84rem;font-weight:800}
+.a-head .em{font-size:.58rem;opacity:.85}
+.a-head .bd{display:inline-block;margin-top:5px;font-size:.5rem;font-weight:700;background:rgba(61,220,132,.22);
+  border:1px solid rgba(61,220,132,.45);color:#bdf3d4;border-radius:999px;padding:1px 8px}
+.a-main{position:absolute;inset:0;padding:152px 12px 12px;display:flex;flex-direction:column;gap:8px}
+.a-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:9px 11px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.a-card .k{font-size:.5rem;color:#6b7280;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.a-card .v{font-size:.68rem;color:#334155;font-weight:700}
+.a-row{display:flex;align-items:center;gap:8px;font-size:.63rem;color:#334155;background:#fff;
+  border:1px solid var(--border);border-radius:10px;padding:9px 11px}
+.a-row .ic{width:22px;height:22px;border-radius:6px;background:#eef7f1;display:flex;align-items:center;
+  justify-content:center;font-size:.62rem;flex-shrink:0}
+.a-row .chev{margin-left:auto;color:#9ca3af}
+.a-logout{margin-top:auto;background:#fff;border:1.5px solid var(--danger);color:var(--danger);font-weight:800;
+  border-radius:9px;padding:9px;text-align:center;font-size:.68rem}
+
+@media(max-width:992px){
+  .sidebar-toggle{display:block}
+  .sidebar{transform:translateX(-100%);transition:transform .3s ease;width:270px}
+  .sidebar.open{transform:translateX(0)}
+  .content{margin-left:0}
+  .main-header{padding-top:4.5rem}
+}
+@media(max-width:768px){
+  .main-header h1{font-size:1.6rem}
+  .card{padding:1.5rem}
+  .phone-body{width:230px;height:456px}
+  figure.phone figcaption{max-width:230px}
+}
+@media print{
+  .sidebar,.sidebar-toggle,.sidebar-overlay,.scroll-top,.main-footer{display:none}
+  .content{margin-left:0}
+  .card{break-inside:avoid;box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<button class="sidebar-toggle" onclick="toggleNav()" aria-label="Buka menu">&#9776;</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleNav()"></div>
+
+<div class="content">
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">&#128274;</div>
+    <div>
+      <div class="brand-title">Login Sesi &amp; Profil</div>
+      <div class="brand-sub">Praktikum SharedPreferences</div>
+    </div>
+  </div>
+
+  <div class="sidebar-label">Langkah Praktikum</div>
+  <nav class="sidebar-nav" id="sidebarNav">
+    <a href="#pendahuluan" class="active"><span class="num">01</span>Pendahuluan &amp; Ketentuan</a>
+    <a href="#project"><span class="num">02</span>Membuat Project</a>
+    <a href="#resource"><span class="num">03</span>Teks &amp; Gambar</a>
+    <a href="#login-layout"><span class="num">04</span>Layout Login</a>
+    <a href="#dashboard-layout"><span class="num">05</span>Layout Dashboard</a>
+    <a href="#session"><span class="num">06</span>Kelas SessionManager</a>
+    <a href="#masuk"><span class="num">07</span>Proses Login</a>
+    <a href="#cek"><span class="num">08</span>Cek Sesi / Auto-Login</a>
+    <a href="#dashboard"><span class="num">09</span>Menampilkan Profil</a>
+    <a href="#logout"><span class="num">10</span>Tombol Logout</a>
+    <a href="#ujicoba"><span class="num">11</span>Uji Coba</a>
+    <a href="#penutup"><span class="num">12</span>Checklist &amp; Tugas</a>
+  </nav>
+
+  <div class="sidebar-foot">
+    Studi Kasus SharedPreferences<br>Pemrograman Android
+  </div>
+</aside>
+
+<header class="main-header">
+  <div class="android-icon">&#128274;</div>
+  <h1>Login Sesi &amp; Dashboard Profil</h1>
+  <p class="subtitle">Studi kasus SharedPreferences: menyimpan sesi login, masuk otomatis ke dashboard profil, dan wajib login ulang bila data sesi tidak ada</p>
+</header>
+
+<div class="container">
+
+<!-- ================= 01 PENDAHULUAN ================= -->
+<section id="pendahuluan" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128274;</div>
+    <h2 class="card-title">Pendahuluan &amp; Ketentuan</h2>
+  </div>
+
+  <p>Pada praktikum ini Anda membangun aplikasi dua layar: <strong>Layar Login</strong> dan <strong>Dashboard Profil</strong>. Saat pengguna berhasil masuk, data sesinya ditulis ke <strong>SharedPreferences</strong>. Ketika aplikasi dibuka lagi, aplikasi <strong>memeriksa sesi itu lebih dulu</strong> &mdash; kalau ada, pengguna langsung masuk ke dashboard; kalau tidak ada, pengguna <strong>wajib login ulang</strong>.</p>
+
+  <p>Inilah pola yang dipakai hampir semua aplikasi nyata: memeriksa sesi di layar pertama, lalu mengarahkan pengguna ke halaman yang tepat. Materi ini melatih tiga hal sekaligus &mdash; menyimpan data dengan SharedPreferences, berpindah Activity, dan mengatur alur aplikasi.</p>
+
+  <h3>Peta 10 Ketentuan Praktikum</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>No</th><th>Ketentuan</th><th>Dibahas di</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Ada layar <strong>Login</strong> dengan isian email dan sandi</td><td>Langkah 4</td></tr>
+        <tr><td>2</td><td>Ada layar <strong>Dashboard Profil</strong></td><td>Langkah 5</td></tr>
+        <tr><td>3</td><td>Data sesi disimpan ke <strong>SharedPreferences</strong> setelah login berhasil</td><td>Langkah 6 &amp; 7</td></tr>
+        <tr><td>4</td><td>Ada <strong>pemeriksaan sesi</strong> saat aplikasi dibuka (auto-login)</td><td>Langkah 8</td></tr>
+        <tr><td>5</td><td>Bila <strong>tidak ada data login</strong>, pengguna harus login ulang</td><td>Langkah 8</td></tr>
+        <tr><td>6</td><td>Dashboard menampilkan profil: nama, email, dan waktu login terakhir</td><td>Langkah 9</td></tr>
+        <tr><td>7</td><td>Ada tombol <strong>Logout</strong></td><td>Langkah 10</td></tr>
+        <tr><td>8</td><td>Logout <strong>menghapus data sesi</strong> dan kembali ke layar Login</td><td>Langkah 10</td></tr>
+        <tr><td>9</td><td>Ada pilihan <strong>&ldquo;Ingat saya&rdquo;</strong> yang menentukan sesi disimpan untuk pembukaan berikutnya</td><td>Langkah 6 &amp; 7</td></tr>
+        <tr><td>10</td><td>Semua baca-tulis sesi diatur lewat satu kelas <strong>SessionManager</strong></td><td>Langkah 6</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Alur Aplikasi yang Akan Dibangun</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">Alur layar</span><span class="code-lang">TEKS</span></div>
+    <pre>Aplikasi dibuka
+      │
+      ▼
+┌──────────────────────────────┐
+│ LoginActivity                │
+│ ada sesi tersimpan?          │
+└──────────────────────────────┘
+      │ ya                    │ tidak
+      ▼                       ▼
+Langsung ke             Tampilkan form login
+DashboardActivity       (email + sandi + Ingat saya)
+      │                       │
+      │                       ▼  login berhasil
+      │                 simpan sesi ke SharedPreferences
+      └───────────────┬───────┘
+                      ▼
+            ┌────────────────────┐
+            │ DashboardActivity  │
+            │ foto, nama, email, │
+            │ waktu login        │
+            └────────────────────┘
+                      │ tombol Logout
+                      ▼
+            hapus sesi → kembali ke layar Login</pre>
+  </div>
+
+  <h3>Yang Harus Terlihat pada Hasil Akhir</h3>
+  <div class="screens">
+    <figure class="phone">
+      <div class="phone-body"><div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="a-status"><span>09:41</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="a-body">
+            <div class="a-logo">&#128274;</div>
+            <div class="a-title">Masuk ke Akun</div>
+            <div class="a-sub">Silakan isi email dan sandi Anda</div>
+            <div>
+              <div class="a-label">EMAIL</div>
+              <div class="a-field empty">nama@email.com</div>
+            </div>
+            <div>
+              <div class="a-label">SANDI</div>
+              <div class="a-field empty">&bull;&bull;&bull;&bull;&bull;&bull;</div>
+            </div>
+            <div class="a-check"><span class="a-box">&#10003;</span>Ingat saya</div>
+            <div class="a-btn">Masuk</div>
+            <div class="a-hint">Akun demo:<br>rani@example.com / 123456</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Layar 1 &mdash; form login saat belum ada sesi tersimpan</figcaption>
+    </figure>
+
+    <figure class="phone">
+      <div class="phone-body"><div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="a-status"><span>09:47</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="a-body" style="padding-bottom:12px">
+            <div class="a-logo">&#128274;</div>
+            <div class="a-title">Masuk ke Akun</div>
+            <div class="a-sub">Silakan isi email dan sandi Anda</div>
+            <div>
+              <div class="a-label">EMAIL</div>
+              <div class="a-field">rani@example.com</div>
+            </div>
+            <div>
+              <div class="a-label">SANDI</div>
+              <div class="a-field">&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;</div>
+            </div>
+            <div class="a-check"><span class="a-box on">&#10003;</span>Ingat saya</div>
+            <div class="a-btn">Masuk</div>
+            <div class="a-hint">Sesi akan disimpan &mdash;<br>lain kali langsung masuk dashboard</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Layar 2 &mdash; form terisi, &ldquo;Ingat saya&rdquo; dicentang sebelum menekan Masuk</figcaption>
+    </figure>
+
+    <figure class="phone">
+      <div class="phone-body"><div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="a-head">
+            <div class="a-avatar"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="32" fill="#dcfce7"/><circle cx="32" cy="26" r="10" fill="#15803d"/><path d="M18,52 a14,14 0 0,1 28,0 z" fill="#15803d"/></svg></div>
+            <div class="nm">Rani</div>
+            <div class="em">rani@example.com</div>
+            <div class="bd">&#10003; Sesi aktif</div>
+          </div>
+          <div class="a-main">
+            <div class="a-card">
+              <div class="k">Terakhir masuk</div>
+              <div class="v">28 Sep 2026, 09:47</div>
+            </div>
+            <div class="a-row"><span class="ic">&#128100;</span>Edit Profil<span class="chev">&rsaquo;</span></div>
+            <div class="a-row"><span class="ic">&#128276;</span>Notifikasi<span class="chev">&rsaquo;</span></div>
+            <div class="a-row"><span class="ic">&#9881;&#65039;</span>Pengaturan<span class="chev">&rsaquo;</span></div>
+            <div class="a-logout">Keluar</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Layar 3 &mdash; Dashboard Profil, data diambil dari SharedPreferences</figcaption>
+    </figure>
+  </div>
+
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Yang perlu disiapkan</div>
+    <ul style="margin-bottom:0">
+      <li>Android Studio (versi apa pun yang sudah pernah dipakai praktikum sebelumnya)</li>
+      <li>Emulator atau ponsel Android dengan USB debugging</li>
+      <li>Bekal dari <strong>materi teori SharedPreferences</strong>: <span class="inline-code">getSharedPreferences()</span>, <span class="inline-code">edit()</span>, <span class="inline-code">put...</span>, <span class="inline-code">apply()</span>, dan <span class="inline-code">get...</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 02 PROJECT ================= -->
+<section id="project" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128193;</div>
+    <h2 class="card-title">Langkah 1&ndash;2: Membuat Project &amp; Dua Activity</h2>
+  </div>
+
+  <h3>Langkah 1: Membuat Project</h3>
+  <ol class="step-list">
+    <li>Buka Android Studio &rarr; <strong>New Project</strong> &rarr; pilih <strong>Empty Views Activity</strong>.</li>
+    <li>Isi <strong>Name</strong>: <span class="inline-code">SesiLogin</span>, <strong>Package name</strong>: <span class="inline-code">com.example.sesisilogin</span>, <strong>Language</strong>: Kotlin, <strong>Minimum SDK</strong>: API 24.</li>
+    <li>Klik <strong>Finish</strong>, lalu jalankan sekali (<em>Run</em>) untuk memastikan project bersih tanpa error.</li>
+  </ol>
+
+  <h3>Langkah 2: Menyiapkan Dua Activity</h3>
+  <p>Project baru hanya punya satu Activity bernama <span class="inline-code">MainActivity</span>. Kita ubah namanya menjadi <strong>LoginActivity</strong>, lalu menambah satu Activity baru untuk dashboard.</p>
+
+  <h4>a. Ganti nama MainActivity menjadi LoginActivity</h4>
+  <ol class="step-list">
+    <li>Di panel <em>Project</em>, buka <span class="inline-code">app/java/com.example.sesisilogin/MainActivity.kt</span>.</li>
+    <li>Klik kanan file tersebut &rarr; <strong>Refactor</strong> &rarr; <strong>Rename</strong>, lalu ganti menjadi <span class="inline-code">LoginActivity</span>. Bila muncul pilihan untuk mengganti nama file layout, centang agar <span class="inline-code">activity_main.xml</span> menjadi <span class="inline-code">activity_login.xml</span>.</li>
+    <li>Setelah selesai, pastikan isi <span class="inline-code">MainActivity.kt</span> sudah menjadi <span class="inline-code">class LoginActivity : AppCompatActivity()</span>, dan layoutnya bernama <span class="inline-code">activity_login.xml</span>.</li>
+  </ol>
+
+  <h4>b. Tambah Activity untuk dashboard</h4>
+  <ol class="step-list">
+    <li>Klik kanan package <span class="inline-code">com.example.sesisilogin</span> &rarr; <strong>New</strong> &rarr; <strong>Activity</strong> &rarr; <strong>Empty Views Activity</strong>.</li>
+    <li>Isi <strong>Activity Name</strong>: <span class="inline-code">DashboardActivity</span>, dan pastikan <strong>Layout Name</strong> menjadi <span class="inline-code">activity_dashboard</span> (biasanya terisi otomatis).</li>
+    <li>Biarkan <em>Source Language</em> Kotlin, lalu klik <strong>Finish</strong>. Android Studio otomatis mendaftarkan Activity ini di Manifest dan membuat file layoutnya.</li>
+  </ol>
+
+  <h4>c. Periksa AndroidManifest.xml</h4>
+  <p>Setelah penambahan Activity, isi Manifest seharusnya seperti ini. Perhatikan bahwa <strong>launcher</strong> sekarang ada pada <span class="inline-code">LoginActivity</span> &mdash; itulah layar pertama yang dibuka saat aplikasi dijalankan.</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">app/manifests/AndroidManifest.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;application</span>
+    <span class="attr">android:allowBackup</span>=<span class="string">"true"</span>
+    <span class="attr">android:icon</span>=<span class="string">"@mipmap/ic_launcher"</span>
+    <span class="attr">android:label</span>=<span class="string">"@string/app_name"</span>
+    <span class="attr">android:theme</span>=<span class="string">"@style/Theme.SesiLogin"</span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- layar pertama saat aplikasi dibuka --&gt;</span>
+    <span class="tag">&lt;activity</span>
+        <span class="attr">android:name</span>=<span class="string">".LoginActivity"</span>
+        <span class="attr">android:exported</span>=<span class="string">"true"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;intent-filter&gt;</span>
+            <span class="tag">&lt;action</span> <span class="attr">android:name</span>=<span class="string">"android.intent.action.MAIN"</span> <span class="tag">/&gt;</span>
+            <span class="tag">&lt;category</span> <span class="attr">android:name</span>=<span class="string">"android.intent.category.LAUNCHER"</span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/intent-filter&gt;</span>
+    <span class="tag">&lt;/activity&gt;</span>
+
+    <span class="comment">&lt;!-- hanya dibuka dari dalam aplikasi --&gt;</span>
+    <span class="tag">&lt;activity</span>
+        <span class="attr">android:name</span>=<span class="string">".DashboardActivity"</span>
+        <span class="attr">android:exported</span>=<span class="string">"false"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/application&gt;</span></pre>
+  </div>
+
+  <div class="info-box warning">
+    <div class="info-box-title">&#9888;&#65039; Bila Manifest tidak berubah otomatis</div>
+    <p>Kalau setelah proses <em>rename</em> nama Aktivitas di Manifest masih tertulis <span class="inline-code">.MainActivity</span>, ubah manual menjadi <span class="inline-code">.LoginActivity</span>. Kesalahan satu huruf di sini membuat aplikasi gagal dijalankan (muncul pesan <em>ClassNotFoundException</em>).</p>
+  </div>
+
+  <h3>Struktur File Akhir</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">Struktur project</span><span class="code-lang">TEKS</span></div>
+    <pre>SesiLogin/
+└── app/src/main/
+    ├── java/com/example/sesisilogin/
+    │   ├── LoginActivity.kt          <span class="comment">// layar login + cek sesi</span>
+    │   ├── DashboardActivity.kt      <span class="comment">// layar profil + logout</span>
+    │   └── SessionManager.kt         <span class="comment">// kelas pengelola sesi</span>
+    └── res/
+        ├── drawable/
+        │   ├── bg_login.xml          <span class="comment">// latar bergradasi</span>
+        │   └── ic_profil.xml         <span class="comment">// gambar avatar</span>
+        ├── layout/
+        │   ├── activity_login.xml
+        │   └── activity_dashboard.xml
+        └── values/
+            └── strings.xml</pre>
+  </div>
+
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Mengapa dipisah menjadi dua Activity?</div>
+    <p>Karena login dan dashboard adalah dua halaman yang berbeda. Setiap halaman punya satu Activity dan satu file layout. Pemisahan ini juga membuat alur <em>login ulang</em> menjadi alami: logout cukup mengarahkan pengguna kembali ke <span class="inline-code">LoginActivity</span>.</p>
+  </div>
+</section>
+
+<!-- ================= 03 RESOURCE ================= -->
+<section id="resource" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#127912;</div>
+    <h2 class="card-title">Langkah 3: Menyiapkan Teks &amp; Gambar</h2>
+  </div>
+
+  <h3>a. strings.xml</h3>
+  <p>Semua tulisan di layar dikumpulkan di sini. Cara ini memudahkan bila nanti teksnya perlu diubah &mdash; cukup satu tempat.</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">res/values/strings.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;resources&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"app_name"</span><span class="tag">&gt;</span>Sesi Login<span class="tag">&lt;/string&gt;</span>
+
+    <span class="comment">&lt;!-- layar login --&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"judul_masuk"</span><span class="tag">&gt;</span>Masuk ke Akun<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"sub_judul_masuk"</span><span class="tag">&gt;</span>Silakan isi email dan sandi Anda<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"hint_email"</span><span class="tag">&gt;</span>nama@email.com<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"hint_sandi"</span><span class="tag">&gt;</span>Sandi<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"label_ingat_saya"</span><span class="tag">&gt;</span>Ingat saya<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"btn_masuk"</span><span class="tag">&gt;</span>Masuk<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"info_akun_demo"</span><span class="tag">&gt;</span>Akun demo: rani@example.com / 123456<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"desc_logo"</span><span class="tag">&gt;</span>Logo aplikasi<span class="tag">&lt;/string&gt;</span>
+
+    <span class="comment">&lt;!-- pesan kesalahan --&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"pesan_email_kosong"</span><span class="tag">&gt;</span>Email tidak boleh kosong<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"pesan_sandi_pendek"</span><span class="tag">&gt;</span>Sandi minimal 6 karakter<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"pesan_login_gagal"</span><span class="tag">&gt;</span>Email atau sandi salah<span class="tag">&lt;/string&gt;</span>
+
+    <span class="comment">&lt;!-- layar dashboard --&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"badge_sesi_aktif"</span><span class="tag">&gt;</span>Sesi aktif<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"label_terakhir_masuk"</span><span class="tag">&gt;</span>Terakhir masuk<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"btn_keluar"</span><span class="tag">&gt;</span>Keluar<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"desc_avatar"</span><span class="tag">&gt;</span>Foto profil pengguna<span class="tag">&lt;/string&gt;</span>
+<span class="tag">&lt;/resources&gt;</span></pre>
+  </div>
+
+  <h3>b. bg_login.xml &mdash; latar bergradasi</h3>
+  <p>Latar layar login dibuat dari bentuk sederhana, jadi tidak perlu menyiapkan file gambar dari luar.</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">res/drawable/bg_login.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;shape</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>
+    <span class="attr">android:shape</span>=<span class="string">"rectangle"</span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;gradient</span>
+        <span class="attr">android:startColor</span>=<span class="string">"#E8F7EE"</span>
+        <span class="attr">android:centerColor</span>=<span class="string">"#F7FAFC"</span>
+        <span class="attr">android:endColor</span>=<span class="string">"#FFFFFF"</span>
+        <span class="attr">android:angle</span>=<span class="string">"270"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/shape&gt;</span></pre>
+  </div>
+
+  <h3>c. ic_profil.xml &mdash; gambar avatar</h3>
+  <p>Gambar avatar dibuat dengan <strong>vector drawable</strong>. Perhatikan triknya: lingkaran dibuat dari perintah <span class="inline-code">a</span> (busur) dengan jari-jari 32 pada titik pusat (32,32).</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">res/drawable/ic_profil.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;vector</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>
+    <span class="attr">android:width</span>=<span class="string">"96dp"</span>
+    <span class="attr">android:height</span>=<span class="string">"96dp"</span>
+    <span class="attr">android:viewportWidth</span>=<span class="string">"64"</span>
+    <span class="attr">android:viewportHeight</span>=<span class="string">"64"</span><span class="tag">&gt;</span>
+
+    <span class="comment">&lt;!-- lingkaran latar --&gt;</span>
+    <span class="tag">&lt;path</span>
+        <span class="attr">android:fillColor</span>=<span class="string">"#DCFCE7"</span>
+        <span class="attr">android:pathData</span>=<span class="string">"M32,32 m-32,0 a32,32 0 1,0 64,0 a32,32 0 1,0 -64,0"</span> <span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- kepala --&gt;</span>
+    <span class="tag">&lt;path</span>
+        <span class="attr">android:fillColor</span>=<span class="string">"#15803D"</span>
+        <span class="attr">android:pathData</span>=<span class="string">"M22,26 a10,10 0 1,0 20,0 a10,10 0 1,0 -20,0"</span> <span class="tag">/&gt;</span>
+
+    <span class="comment">&lt;!-- bahu --&gt;</span>
+    <span class="tag">&lt;path</span>
+        <span class="attr">android:fillColor</span>=<span class="string">"#15803D"</span>
+        <span class="attr">android:pathData</span>=<span class="string">"M18,52 a14,14 0 0,1 28,0 z"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/vector&gt;</span></pre>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#9989; Cek Hasil Langkah 3</div>
+    <p>Pastikan ketiga file di atas tersimpan di folder yang benar. Bila ada kesalahan penulisan nama file, Android Studio akan memberi garis merah saat file itu dipanggil dari layout.</p>
+  </div>
+</section>
+
+<!-- ================= 04 LAYOUT LOGIN ================= -->
+<section id="login-layout" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128221;</div>
+    <h2 class="card-title">Langkah 4: Layout Layar Login (Ketentuan 1)</h2>
+  </div>
+
+  <p>Layar login berisi lima komponen: logo, judul, isian email, isian sandi, pilihan <strong>Ingat saya</strong>, dan tombol <strong>Masuk</strong>. Di bagian bawah ada satu TextView untuk menampilkan pesan kesalahan.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">res/layout/activity_login.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;ScrollView</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>
+    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>
+    <span class="attr">android:background</span>=<span class="string">"@drawable/bg_login"</span>
+    <span class="attr">android:fillViewport</span>=<span class="string">"true"</span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;LinearLayout</span>
+        <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+        <span class="attr">android:orientation</span>=<span class="string">"vertical"</span>
+        <span class="attr">android:padding</span>=<span class="string">"28dp"</span><span class="tag">&gt;</span>
+
+        <span class="comment">&lt;!-- logo aplikasi --&gt;</span>
+        <span class="tag">&lt;ImageView</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/ivLogo"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"84dp"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"84dp"</span>
+            <span class="attr">android:layout_gravity</span>=<span class="string">"center_horizontal"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"24dp"</span>
+            <span class="attr">android:contentDescription</span>=<span class="string">"@string/desc_logo"</span>
+            <span class="attr">android:src</span>=<span class="string">"@drawable/ic_profil"</span> <span class="tag">/&gt;</span>
+
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"16dp"</span>
+            <span class="attr">android:gravity</span>=<span class="string">"center"</span>
+            <span class="attr">android:text</span>=<span class="string">"@string/judul_masuk"</span>
+            <span class="attr">android:textSize</span>=<span class="string">"24sp"</span>
+            <span class="attr">android:textStyle</span>=<span class="string">"bold"</span> <span class="tag">/&gt;</span>
+
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:gravity</span>=<span class="string">"center"</span>
+            <span class="attr">android:text</span>=<span class="string">"@string/sub_judul_masuk"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- isian email --&gt;</span>
+        <span class="tag">&lt;EditText</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/etEmail"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"28dp"</span>
+            <span class="attr">android:hint</span>=<span class="string">"@string/hint_email"</span>
+            <span class="attr">android:inputType</span>=<span class="string">"textEmailAddress"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- isian sandi --&gt;</span>
+        <span class="tag">&lt;EditText</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/etPassword"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:hint</span>=<span class="string">"@string/hint_sandi"</span>
+            <span class="attr">android:inputType</span>=<span class="string">"textPassword"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- pilihan ingat saya --&gt;</span>
+        <span class="tag">&lt;CheckBox</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/cbIngatSaya"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:text</span>=<span class="string">"@string/label_ingat_saya"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- pesan kesalahan: kosong di awal --&gt;</span>
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/tvPesanMasuk"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"8dp"</span>
+            <span class="attr">android:textColor</span>=<span class="string">"#B3261E"</span>
+            <span class="attr">android:textSize</span>=<span class="string">"14sp"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- tombol masuk --&gt;</span>
+        <span class="tag">&lt;Button</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/btnMasuk"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"10dp"</span>
+            <span class="attr">android:text</span>=<span class="string">"@string/btn_masuk"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- keterangan akun demo --&gt;</span>
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/tvInfoDemo"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"24dp"</span>
+            <span class="attr">android:gravity</span>=<span class="string">"center"</span>
+            <span class="attr">android:text</span>=<span class="string">"@string/info_akun_demo"</span>
+            <span class="attr">android:textSize</span>=<span class="string">"13sp"</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/LinearLayout&gt;</span>
+<span class="tag">&lt;/ScrollView&gt;</span></pre>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Id</th><th>Komponen</th><th>Fungsi</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">ivLogo</span></td><td>ImageView</td><td>Menampilkan gambar avatar di bagian atas</td></tr>
+        <tr><td><span class="inline-code">etEmail</span></td><td>EditText</td><td>Isian email, <span class="inline-code">inputType="textEmailAddress"</span></td></tr>
+        <tr><td><span class="inline-code">etPassword</span></td><td>EditText</td><td>Isian sandi, <span class="inline-code">inputType="textPassword"</span> sehingga tampil titik-titik</td></tr>
+        <tr><td><span class="inline-code">cbIngatSaya</span></td><td>CheckBox</td><td>Menentukan sesi disimpan untuk pembukaan berikutnya</td></tr>
+        <tr><td><span class="inline-code">tvPesanMasuk</span></td><td>TextView</td><td>Tempat pesan kesalahan, misalnya &ldquo;Email atau sandi salah&rdquo;</td></tr>
+        <tr><td><span class="inline-code">btnMasuk</span></td><td>Button</td><td>Menjalankan proses login</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Mengapa TextView pesan, bukan Toast?</div>
+    <p>Pesan kesalahan login lebih jelas bila tertulis di layar tepat di bawah form, bukan muncul sekilas lalu hilang. Karena awalnya kosong, TextView ini tidak terlihat sampai ada pesan yang diisi dari kode.</p>
+  </div>
+</section>
+
+<!-- ================= 05 LAYOUT DASHBOARD ================= -->
+<section id="dashboard-layout" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128100;</div>
+    <h2 class="card-title">Langkah 5: Layout Dashboard Profil (Ketentuan 2)</h2>
+  </div>
+
+  <p>Dashboard berisi tiga bagian: <strong>kepala halaman</strong> gelap berisi avatar, nama, dan email; <strong>kartu informasi</strong> waktu login terakhir; serta tiga baris menu statis dan satu tombol <strong>Keluar</strong>.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">res/layout/activity_dashboard.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;ScrollView</span> <span class="attr">xmlns:android</span>=<span class="string">"http://schemas.android.com/apk/res/android"</span>
+    <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+    <span class="attr">android:layout_height</span>=<span class="string">"match_parent"</span>
+    <span class="attr">android:background</span>=<span class="string">"#F4F6F8"</span>
+    <span class="attr">android:fillViewport</span>=<span class="string">"true"</span><span class="tag">&gt;</span>
+
+    <span class="tag">&lt;LinearLayout</span>
+        <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+        <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+        <span class="attr">android:orientation</span>=<span class="string">"vertical"</span><span class="tag">&gt;</span>
+
+        <span class="comment">&lt;!-- ===== kepala halaman: profil ===== --&gt;</span>
+        <span class="tag">&lt;LinearLayout</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:background</span>=<span class="string">"#16213E"</span>
+            <span class="attr">android:gravity</span>=<span class="string">"center_horizontal"</span>
+            <span class="attr">android:orientation</span>=<span class="string">"vertical"</span>
+            <span class="attr">android:padding</span>=<span class="string">"32dp"</span><span class="tag">&gt;</span>
+
+            <span class="tag">&lt;ImageView</span>
+                <span class="attr">android:id</span>=<span class="string">"@+id/ivAvatar"</span>
+                <span class="attr">android:layout_width</span>=<span class="string">"96dp"</span>
+                <span class="attr">android:layout_height</span>=<span class="string">"96dp"</span>
+                <span class="attr">android:contentDescription</span>=<span class="string">"@string/desc_avatar"</span>
+                <span class="attr">android:src</span>=<span class="string">"@drawable/ic_profil"</span> <span class="tag">/&gt;</span>
+
+            <span class="tag">&lt;TextView</span>
+                <span class="attr">android:id</span>=<span class="string">"@+id/tvNama"</span>
+                <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_marginTop</span>=<span class="string">"12dp"</span>
+                <span class="attr">android:textColor</span>=<span class="string">"#FFFFFF"</span>
+                <span class="attr">android:textSize</span>=<span class="string">"22sp"</span>
+                <span class="attr">android:textStyle</span>=<span class="string">"bold"</span> <span class="tag">/&gt;</span>
+
+            <span class="tag">&lt;TextView</span>
+                <span class="attr">android:id</span>=<span class="string">"@+id/tvEmail"</span>
+                <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:textColor</span>=<span class="string">"#C7D2DC"</span>
+                <span class="attr">android:textSize</span>=<span class="string">"14sp"</span> <span class="tag">/&gt;</span>
+
+            <span class="tag">&lt;TextView</span>
+                <span class="attr">android:id</span>=<span class="string">"@+id/tvBadgeSesi"</span>
+                <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_marginTop</span>=<span class="string">"10dp"</span>
+                <span class="attr">android:background</span>=<span class="string">"#1F3B2E"</span>
+                <span class="attr">android:paddingHorizontal</span>=<span class="string">"12dp"</span>
+                <span class="attr">android:paddingVertical</span>=<span class="string">"4dp"</span>
+                <span class="attr">android:text</span>=<span class="string">"@string/badge_sesi_aktif"</span>
+                <span class="attr">android:textColor</span>=<span class="string">"#9BE8BF"</span>
+                <span class="attr">android:textSize</span>=<span class="string">"12sp"</span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/LinearLayout&gt;</span>
+
+        <span class="comment">&lt;!-- ===== kartu waktu login ===== --&gt;</span>
+        <span class="tag">&lt;LinearLayout</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_margin</span>=<span class="string">"16dp"</span>
+            <span class="attr">android:background</span>=<span class="string">"#FFFFFF"</span>
+            <span class="attr">android:orientation</span>=<span class="string">"vertical"</span>
+            <span class="attr">android:padding</span>=<span class="string">"16dp"</span><span class="tag">&gt;</span>
+
+            <span class="tag">&lt;TextView</span>
+                <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:text</span>=<span class="string">"@string/label_terakhir_masuk"</span>
+                <span class="attr">android:textColor</span>=<span class="string">"#6B7280"</span>
+                <span class="attr">android:textSize</span>=<span class="string">"12sp"</span> <span class="tag">/&gt;</span>
+
+            <span class="tag">&lt;TextView</span>
+                <span class="attr">android:id</span>=<span class="string">"@+id/tvWaktu"</span>
+                <span class="attr">android:layout_width</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+                <span class="attr">android:textColor</span>=<span class="string">"#16213E"</span>
+                <span class="attr">android:textSize</span>=<span class="string">"16sp"</span>
+                <span class="attr">android:textStyle</span>=<span class="string">"bold"</span> <span class="tag">/&gt;</span>
+        <span class="tag">&lt;/LinearLayout&gt;</span>
+
+        <span class="comment">&lt;!-- ===== daftar menu (statis, hanya tampilan) ===== --&gt;</span>
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginHorizontal</span>=<span class="string">"16dp"</span>
+            <span class="attr">android:padding</span>=<span class="string">"14dp"</span>
+            <span class="attr">android:background</span>=<span class="string">"#FFFFFF"</span>
+            <span class="attr">android:text</span>=<span class="string">"&#128100;  Edit Profil"</span>
+            <span class="attr">android:textColor</span>=<span class="string">"#334155"</span> <span class="tag">/&gt;</span>
+
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginHorizontal</span>=<span class="string">"16dp"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"10dp"</span>
+            <span class="attr">android:padding</span>=<span class="string">"14dp"</span>
+            <span class="attr">android:background</span>=<span class="string">"#FFFFFF"</span>
+            <span class="attr">android:text</span>=<span class="string">"&#128276;  Notifikasi"</span>
+            <span class="attr">android:textColor</span>=<span class="string">"#334155"</span> <span class="tag">/&gt;</span>
+
+        <span class="tag">&lt;TextView</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_marginHorizontal</span>=<span class="string">"16dp"</span>
+            <span class="attr">android:layout_marginTop</span>=<span class="string">"10dp"</span>
+            <span class="attr">android:padding</span>=<span class="string">"14dp"</span>
+            <span class="attr">android:background</span>=<span class="string">"#FFFFFF"</span>
+            <span class="attr">android:text</span>=<span class="string">"&#9881;  Pengaturan"</span>
+            <span class="attr">android:textColor</span>=<span class="string">"#334155"</span> <span class="tag">/&gt;</span>
+
+        <span class="comment">&lt;!-- ===== tombol keluar ===== --&gt;</span>
+        <span class="tag">&lt;Button</span>
+            <span class="attr">android:id</span>=<span class="string">"@+id/btnLogout"</span>
+            <span class="attr">android:layout_width</span>=<span class="string">"match_parent"</span>
+            <span class="attr">android:layout_height</span>=<span class="string">"wrap_content"</span>
+            <span class="attr">android:layout_margin</span>=<span class="string">"16dp"</span>
+            <span class="attr">android:text</span>=<span class="string">"@string/btn_keluar"</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;/LinearLayout&gt;</span>
+<span class="tag">&lt;/ScrollView&gt;</span></pre>
+  </div>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Id</th><th>Komponen</th><th>Diisi dari</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">ivAvatar</span></td><td>ImageView</td><td>Drawable <span class="inline-code">ic_profil</span> (tetap, tidak berubah)</td></tr>
+        <tr><td><span class="inline-code">tvNama</span></td><td>TextView</td><td>Sesi tersimpan &mdash; kunci <span class="inline-code">nama</span></td></tr>
+        <tr><td><span class="inline-code">tvEmail</span></td><td>TextView</td><td>Sesi tersimpan &mdash; kunci <span class="inline-code">email</span></td></tr>
+        <tr><td><span class="inline-code">tvWaktu</span></td><td>TextView</td><td>Sesi tersimpan &mdash; kunci <span class="inline-code">waktu_login</span>, diformat menjadi tanggal</td></tr>
+        <tr><td><span class="inline-code">btnLogout</span></td><td>Button</td><td>Menjalankan fungsi keluar</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#9989; Cek Hasil Langkah 4&ndash;5</div>
+    <p>Jalankan aplikasi. Layar login tampil lengkap dengan logo, dua isian, checkbox, dan tombol. Bila Anda sengaja membuka <span class="inline-code">DashboardActivity</span> lewat kode sementara, layar dashboard tampil dengan nama dan email yang masih kosong &mdash; bagian itu akan diisi pada langkah 9.</p>
+  </div>
+</section>
+
+<!-- ================= 06 SESSION MANAGER ================= -->
+<section id="session" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128273;</div>
+    <h2 class="card-title">Langkah 6: Kelas SessionManager (Ketentuan 3, 9 &amp; 10)</h2>
+  </div>
+
+  <p>Agar kode baca-tulis sesi tidak tercecer di banyak tempat, kita buat satu kelas khusus bernama <strong>SessionManager</strong>. Kelas ini yang tahu semua nama kunci dan nama filenya; Activity cukup memanggil fungsinya.</p>
+
+  <h4>a. Buat file Kotlin baru</h4>
+  <p>Klik kanan package <span class="inline-code">com.example.sesisilogin</span> &rarr; <strong>New</strong> &rarr; <strong>Kotlin Class/File</strong> &rarr; pilih <strong>Class</strong> &rarr; beri nama <span class="inline-code">SessionManager</span>.</p>
+
+  <h4>b. Isi kelasnya</h4>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">SessionManager.kt</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">package</span> com.example.sesisilogin
+
+<span class="keyword">import</span> android.content.Context
+
+<span class="keyword">class</span> SessionManager(context: Context) {
+
+    <span class="comment">// satu objek SharedPreferences dipakai oleh seluruh fungsi di kelas ini</span>
+    <span class="keyword">private val</span> prefs = context.getSharedPreferences(NAMA_PREFS, Context.MODE_PRIVATE)
+
+    <span class="keyword">companion object</span> {
+        <span class="keyword">private const val</span> NAMA_PREFS = <span class="string">"sesi_login"</span>
+
+        <span class="keyword">private const val</span> KEY_SUDAH_LOGIN = <span class="string">"sudah_login"</span>
+        <span class="keyword">private const val</span> KEY_NAMA        = <span class="string">"nama"</span>
+        <span class="keyword">private const val</span> KEY_EMAIL       = <span class="string">"email"</span>
+        <span class="keyword">private const val</span> KEY_WAKTU       = <span class="string">"waktu_login"</span>
+    }
+
+    <span class="comment">// ================= MENYIMPAN SESI =================</span>
+    <span class="keyword">fun</span> simpanSesi(nama: String, email: String, ingatSaya: Boolean) {
+        prefs.edit()
+            .putBoolean(KEY_SUDAH_LOGIN, ingatSaya)
+            .putString(KEY_NAMA, nama)
+            .putString(KEY_EMAIL, email)
+            .putLong(KEY_WAKTU, System.currentTimeMillis())
+            .apply()
+    }
+
+    <span class="comment">// ================= MEMBACA SESI =================</span>
+
+    <span class="comment">// boleh langsung masuk tanpa mengisi form? (diisi oleh centang "Ingat saya")</span>
+    <span class="keyword">fun</span> sudahLogin(): Boolean = prefs.getBoolean(KEY_SUDAH_LOGIN, <span class="keyword">false</span>)
+
+    <span class="comment">// ada data login untuk ditampilkan di dashboard?</span>
+    <span class="keyword">fun</span> adaDataProfil(): Boolean = ambilNama().isNotEmpty() &amp;&amp; ambilEmail().isNotEmpty()
+
+    <span class="keyword">fun</span> ambilNama(): String = prefs.getString(KEY_NAMA, <span class="string">""</span>) ?: <span class="string">""</span>
+    <span class="keyword">fun</span> ambilEmail(): String = prefs.getString(KEY_EMAIL, <span class="string">""</span>) ?: <span class="string">""</span>
+    <span class="keyword">fun</span> ambilWaktuLogin(): Long = prefs.getLong(KEY_WAKTU, 0L)
+
+    <span class="comment">// ================= MENGHAPUS SESI =================</span>
+    <span class="keyword">fun</span> hapusSesi() {
+        prefs.edit().clear().apply()
+    }
+}</pre>
+  </div>
+
+  <h4>c. Isi file sesi_login.xml di penyimpanan</h4>
+  <p>Setelah pengguna login, Android membuat file berikut di penyimpanan internal aplikasi. Isinya persis data yang kita simpan:</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">/data/data/com.example.sesisilogin/shared_preferences/sesi_login.xml</span><span class="code-lang">XML</span></div>
+    <pre><span class="tag">&lt;?xml version='1.0' encoding='utf-8' standalone='yes' ?&gt;</span>
+<span class="tag">&lt;map&gt;</span>
+    <span class="tag">&lt;boolean</span> <span class="attr">name</span>=<span class="string">"sudah_login"</span> <span class="attr">value</span>=<span class="string">"true"</span> <span class="tag">/&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"nama"</span><span class="tag">&gt;</span>Rani<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;string</span> <span class="attr">name</span>=<span class="string">"email"</span><span class="tag">&gt;</span>rani@example.com<span class="tag">&lt;/string&gt;</span>
+    <span class="tag">&lt;long</span> <span class="attr">name</span>=<span class="string">"waktu_login"</span> <span class="attr">value</span>=<span class="string">"1789607231456"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;/map&gt;</span></pre>
+  </div>
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Cara melihat file ini sendiri</div>
+    <p>Jalankan aplikasi, lalu buka <strong>View</strong> &rarr; <strong>Tool Windows</strong> &rarr; <strong>Device File Explorer</strong> dan telusuri <span class="inline-code">data/data/com.example.sesisilogin/shared_preferences/</span>. File itu menjadi bukti nyata bahwa sesi benar-benar tersimpan di perangkat, bukan hanya di memori.</p>
+  </div>
+
+  <h3>Daftar Fungsi SessionManager</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Fungsi</th><th>Menjawab pertanyaan</th><th>Dipakai di</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">simpanSesi(nama, email, ingatSaya)</span></td><td>&mdash; (menulis data)</td><td>LoginActivity saat login berhasil</td></tr>
+        <tr><td><span class="inline-code">sudahLogin()</span></td><td>Boleh langsung masuk tanpa mengisi form?</td><td>LoginActivity saat aplikasi dibuka</td></tr>
+        <tr><td><span class="inline-code">adaDataProfil()</span></td><td>Ada data login untuk ditampilkan?</td><td>DashboardActivity sebagai pengaman</td></tr>
+        <tr><td><span class="inline-code">ambilNama()</span> / <span class="inline-code">ambilEmail()</span></td><td>Siapa yang sedang login?</td><td>DashboardActivity</td></tr>
+        <tr><td><span class="inline-code">ambilWaktuLogin()</span></td><td>Kapan terakhir masuk?</td><td>DashboardActivity</td></tr>
+        <tr><td><span class="inline-code">hapusSesi()</span></td><td>&mdash; (menghapus semua data)</td><td>DashboardActivity saat tombol Keluar ditekan</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Kunci Sesi yang Dipakai</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Kunci</th><th>Tipe</th><th>Isi</th><th>Nilai awal</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">sudah_login</span></td><td>Boolean</td><td>Hasil centang &ldquo;Ingat saya&rdquo;</td><td><span class="inline-code">false</span></td></tr>
+        <tr><td><span class="inline-code">nama</span></td><td>String</td><td>Nama pengguna, diambil dari bagian depan email</td><td><span class="inline-code">""</span></td></tr>
+        <tr><td><span class="inline-code">email</span></td><td>String</td><td>Email yang dipakai login</td><td><span class="inline-code">""</span></td></tr>
+        <tr><td><span class="inline-code">waktu_login</span></td><td>Long</td><td>Waktu login dalam milidetik</td><td><span class="inline-code">0L</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#128161; Mengapa ada dua fungsi pemeriksaan?</div>
+    <p>Keduanya menjawab pertanyaan yang berbeda. <span class="inline-code">sudahLogin()</span> khusus untuk keputusan <em>&ldquo;boleh langsung masuk atau harus mengisi form?&rdquo;</em> &mdash; nilainya berasal dari centang <strong>Ingat saya</strong>. Sedangkan <span class="inline-code">adaDataProfil()</span> memeriksa apakah benar ada data login yang bisa ditampilkan; bila tidak ada, dashboard menolak dibuka dan mengembalikan pengguna ke layar login.</p>
+  </div>
+</section>
+
+<!-- ================= 07 PROSES LOGIN ================= -->
+<section id="masuk" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128272;</div>
+    <h2 class="card-title">Langkah 7: Proses Login &amp; Menyimpan Sesi</h2>
+  </div>
+
+  <p>Sekarang kita isi kelas <span class="inline-code">LoginActivity.kt</span>. Ada empat tugas: mengambil view, memasang tombol, menyiapkan akun demo, dan menulis fungsi login.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">LoginActivity.kt - bagian 1: variabel &amp; onCreate</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">package</span> com.example.sesisilogin
+
+<span class="keyword">import</span> android.content.Intent
+<span class="keyword">import</span> android.os.Bundle
+<span class="keyword">import</span> android.widget.Button
+<span class="keyword">import</span> android.widget.CheckBox
+<span class="keyword">import</span> android.widget.EditText
+<span class="keyword">import</span> android.widget.TextView
+<span class="keyword">import</span> androidx.appcompat.app.AppCompatActivity
+
+<span class="keyword">class</span> LoginActivity : AppCompatActivity() {
+
+    <span class="keyword">companion object</span> {
+        <span class="comment">// akun demo: periksa di langkah 11 (tabel uji coba)</span>
+        <span class="keyword">private const val</span> EMAIL_DEMO = <span class="string">"rani@example.com"</span>
+        <span class="keyword">private const val</span> SANDI_DEMO = <span class="string">"123456"</span>
+    }
+
+    <span class="keyword">private lateinit var</span> session: SessionManager
+    <span class="keyword">private lateinit var</span> etEmail: EditText
+    <span class="keyword">private lateinit var</span> etPassword: EditText
+    <span class="keyword">private lateinit var</span> cbIngatSaya: CheckBox
+    <span class="keyword">private lateinit var</span> tvPesanMasuk: TextView
+
+    <span class="keyword">override fun</span> onCreate(savedInstanceState: Bundle?) {
+        <span class="keyword">super</span>.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_login)
+
+        <span class="comment">// 1) siapkan pengelola sesi</span>
+        session = SessionManager(<span class="keyword">this</span>)
+
+        <span class="comment">// 2) ambil semua view</span>
+        etEmail = findViewById(R.id.etEmail)
+        etPassword = findViewById(R.id.etPassword)
+        cbIngatSaya = findViewById(R.id.cbIngatSaya)
+        tvPesanMasuk = findViewById(R.id.tvPesanMasuk)
+
+        <span class="comment">// 3) pasang tombol masuk</span>
+        findViewById&lt;Button&gt;(R.id.btnMasuk).setOnClickListener { prosesLogin() }
+    }
+
+    <span class="comment">// ... fungsi prosesLogin() dan bukaDashboard() ditulis di bawah ini ...</span>
+}</pre>
+  </div>
+
+  <p>Perhatikan bahwa <strong>cek sesi belum ada</strong> di <span class="inline-code">onCreate</span> di atas &mdash; kita tambahkan pada langkah 8. Sekarang fokus ke proses login terlebih dahulu.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">LoginActivity.kt - bagian 2: prosesLogin()</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">private fun</span> prosesLogin() {
+    <span class="keyword">val</span> email = etEmail.text.toString().trim()
+    <span class="keyword">val</span> sandi = etPassword.text.toString()
+
+    <span class="comment">// 1) bersihkan pesan kesalahan sebelumnya</span>
+    tvPesanMasuk.text = <span class="string">""</span>
+
+    <span class="comment">// 2) validasi isian</span>
+    <span class="keyword">if</span> (email.isEmpty()) {
+        etEmail.error = getString(R.string.pesan_email_kosong)
+        <span class="keyword">return</span>
+    }
+    <span class="keyword">if</span> (sandi.length &lt; 6) {
+        etPassword.error = getString(R.string.pesan_sandi_pendek)
+        <span class="keyword">return</span>
+    }
+
+    <span class="comment">// 3) cocokkan dengan akun demo</span>
+    <span class="keyword">if</span> (email != EMAIL_DEMO || sandi != SANDI_DEMO) {
+        tvPesanMasuk.text = getString(R.string.pesan_login_gagal)
+        <span class="keyword">return</span>
+    }
+
+    <span class="comment">// 4) susun nama tampilan dari bagian depan email -> "rani" jadi "Rani"</span>
+    <span class="keyword">val</span> nama = email.substringBefore(<span class="string">"@"</span>).replaceFirstChar { it.uppercase() }
+
+    <span class="comment">// 5) SIMPAN SESI. Centang "Ingat saya" menentukan apakah sesi</span>
+    <span class="comment">//    boleh dipakai lagi saat aplikasi dibuka berikutnya.</span>
+    session.simpanSesi(nama, email, cbIngatSaya.isChecked)
+
+    <span class="comment">// 6) masuk ke dashboard</span>
+    bukaDashboard()
+}
+
+<span class="keyword">private fun</span> bukaDashboard() {
+    startActivity(Intent(<span class="keyword">this</span>, DashboardActivity::class.java))
+    finish()   <span class="comment">// tutup layar login agar tombol Back tidak kembali ke form</span>
+}</pre>
+  </div>
+
+  <h3>Tiga Lapis Pemeriksaan Sebelum Sesi Disimpan</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Pemeriksaan</th><th>Bila gagal</th><th>Pesan yang muncul</th></tr></thead>
+      <tbody>
+        <tr><td>Email kosong</td><td>Berhenti, tidak lanjut</td><td>Pesan merah di bawah isian email</td></tr>
+        <tr><td>Sandi kurang dari 6 karakter</td><td>Berhenti, tidak lanjut</td><td>Pesan merah di bawah isian sandi</td></tr>
+        <tr><td>Email atau sandi tidak cocok</td><td>Berhenti, sesi <strong>tidak</strong> disimpan</td><td>TextView &ldquo;Email atau sandi salah&rdquo; di bawah form</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box warning">
+    <div class="info-box-title">&#9888;&#65039; Pemeriksaan harus dilakukan sebelum menyimpan</div>
+    <p>Pastikan <span class="inline-code">session.simpanSesi(...)</span> berada <strong>setelah</strong> semua pemeriksaan. Kalau diletakkan di atas, sesi akan tersimpan walaupun email dan sandinya salah &mdash; dan pengguna bisa masuk dashboard tanpa login yang benar.</p>
+  </div>
+
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Soal akun demo</div>
+    <p>Pada latihan ini email dan sandi masih <em>hardcode</em> di dalam kode agar mudah diuji. Pada aplikasi sungguhan, proses pencocokan dilakukan oleh server, dan aplikasi hanya menyimpan <strong>token</strong> hasil login &mdash; bukan email dan sandi. Jangan pernah menyimpan sandi di SharedPreferences.</p>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#9989; Cek Hasil Langkah 7</div>
+    <ul style="margin-bottom:0">
+      <li>Email kosong lalu tekan Masuk &rarr; muncul pesan merah pada isian email.</li>
+      <li>Sandi hanya 3 karakter &rarr; muncul pesan merah pada isian sandi.</li>
+      <li>Email benar tetapi sandi salah &rarr; muncul tulisan <strong>Email atau sandi salah</strong> di bawah form.</li>
+      <li>Email <span class="inline-code">rani@example.com</span> dan sandi <span class="inline-code">123456</span> &rarr; pindah ke layar dashboard (isinya masih kosong, diisi pada langkah 9).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 08 CEK SESI ================= -->
+<section id="cek" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128260;</div>
+    <h2 class="card-title">Langkah 8: Cek Sesi Saat Aplikasi Dibuka (Ketentuan 4 &amp; 5)</h2>
+  </div>
+
+  <p>Inilah inti praktikum ini. Pemeriksaan sesi diletakkan di <span class="inline-code">onCreate()</span>, <strong>sebelum</strong> form login dipakai pengguna. Bila sesi ada, pengguna langsung diarahkan ke dashboard; bila tidak ada, form login tampil seperti biasa dan pengguna <strong>wajib login ulang</strong>.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">LoginActivity.kt - bagian 3: onCreate() lengkap</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">override fun</span> onCreate(savedInstanceState: Bundle?) {
+    <span class="keyword">super</span>.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_login)
+
+    session = SessionManager(<span class="keyword">this</span>)
+
+    etEmail = findViewById(R.id.etEmail)
+    etPassword = findViewById(R.id.etPassword)
+    cbIngatSaya = findViewById(R.id.cbIngatSaya)
+    tvPesanMasuk = findViewById(R.id.tvPesanMasuk)
+
+    <span class="comment">// ===== CEK SESI: langkah paling penting =====</span>
+    <span class="keyword">if</span> (session.sudahLogin()) {
+        bukaDashboard()      <span class="comment">// sudah pernah login &amp; centang "Ingat saya"</span>
+        <span class="keyword">return</span>               <span class="comment">// hentikan: form login tidak perlu disiapkan</span>
+    }
+
+    <span class="comment">// tidak ada sesi -> tampilkan form login</span>
+    <span class="comment">// email terakhir diketik ulang supaya pengguna tidak perlu menulis lagi</span>
+    etEmail.setText(session.ambilEmail())
+
+    findViewById&lt;Button&gt;(R.id.btnMasuk).setOnClickListener { prosesLogin() }
+}</pre>
+  </div>
+
+  <h3>Kapan Sesi Ada, Kapan Harus Login Ulang</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Kejadian</th><th>Isi <span class="inline-code">sudah_login</span></th><th>Perilaku aplikasi</th></tr></thead>
+      <tbody>
+        <tr><td>Baru dipasang, belum pernah login</td><td>tidak ada data</td><td>Form login tampil &mdash; <strong>wajib login</strong></td></tr>
+        <tr><td>Login dengan <strong>Ingat saya dicentang</strong>, lalu aplikasi ditutup</td><td><span class="inline-code">true</span></td><td>Langsung masuk <strong>Dashboard</strong> tanpa mengisi form</td></tr>
+        <tr><td>Login dengan <strong>Ingat saya tidak dicentang</strong>, lalu aplikasi ditutup</td><td><span class="inline-code">false</span></td><td>Form login tampil lagi &mdash; <strong>wajib login ulang</strong></td></tr>
+        <tr><td>Sudah menekan tombol <strong>Keluar</strong></td><td>terhapus</td><td>Form login tampil &mdash; <strong>wajib login ulang</strong></td></tr>
+        <tr><td>Aplikasi di-<em>uninstall</em> lalu dipasang lagi</td><td>terhapus</td><td>Form login tampil &mdash; <strong>wajib login ulang</strong></td></tr>
+        <tr><td>Pengguna menekan <strong>Clear data</strong> di pengaturan aplikasi</td><td>terhapus</td><td>Form login tampil &mdash; <strong>wajib login ulang</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Mengapa Memakai finish() Setelah Pindah Layar?</h3>
+  <p>Perhatikan baris <span class="inline-code">finish()</span> di dalam <span class="inline-code">bukaDashboard()</span>. Fungsinya menutup Activity yang sedang aktif sehingga tidak tersisa di tumpukan layar.</p>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Tanpa finish()</th><th>Dengan finish()</th></tr></thead>
+      <tbody>
+        <tr><td>Setelah masuk dashboard, menekan tombol Back akan <strong>kembali ke form login</strong> &mdash; padahal pengguna sudah masuk.</td><td>Menekan tombol Back dari dashboard <strong>langsung keluar dari aplikasi</strong>, seperti perilaku aplikasi pada umumnya.</td></tr>
+        <tr><td>Activity login tetap hidup di memori meski tidak terlihat.</td><td>Tumpukan layar bersih: hanya ada satu layar aktif pada satu waktu.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#128161; Pola ini dipakai di hampir semua aplikasi</div>
+    <p>Pada aplikasi nyata, pemeriksaan sesi sering dilengkapi <strong>layar splash</strong>: saat aplikasi dibuka, muncul logo sejenak, lalu aplikasi memutuskan mau ke login atau ke halaman utama. Alurnya sama persis dengan yang kita buat &mdash; memeriksa sesi lebih dahulu, baru menentukan arah.</p>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#9989; Cek Hasil Langkah 8</div>
+    <ul style="margin-bottom:0">
+      <li>Login dengan <strong>Ingat saya dicentang</strong> &rarr; tutup aplikasi dari daftar aplikasi terakhir &rarr; buka lagi: langsung masuk dashboard.</li>
+      <li>Keluar (logout), lalu login lagi <strong>tanpa</strong> centang &ldquo;Ingat saya&rdquo; &rarr; tutup dan buka lagi: form login muncul kembali, dengan email sebelumnya sudah terisi.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 09 DASHBOARD PROFIL ================= -->
+<section id="dashboard" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128188;</div>
+    <h2 class="card-title">Langkah 9: Menampilkan Profil dari Sesi (Ketentuan 6)</h2>
+  </div>
+
+  <p>Dashboard hanya menampilkan data &mdash; tidak menyimpan apa pun. Nilainya dibaca dari sesi yang sudah tersimpan, lalu ditempelkan ke view.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">DashboardActivity.kt - bagian 1</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">package</span> com.example.sesisilogin
+
+<span class="keyword">import</span> android.content.Intent
+<span class="keyword">import</span> android.os.Bundle
+<span class="keyword">import</span> android.widget.Button
+<span class="keyword">import</span> android.widget.TextView
+<span class="keyword">import</span> androidx.appcompat.app.AppCompatActivity
+<span class="keyword">import</span> java.text.SimpleDateFormat
+<span class="keyword">import</span> java.util.Date
+<span class="keyword">import</span> java.util.Locale
+
+<span class="keyword">class</span> DashboardActivity : AppCompatActivity() {
+
+    <span class="keyword">private lateinit var</span> session: SessionManager
+
+    <span class="keyword">override fun</span> onCreate(savedInstanceState: Bundle?) {
+        <span class="keyword">super</span>.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_dashboard)
+
+        session = SessionManager(<span class="keyword">this</span>)
+
+        <span class="comment">// ===== PENGAMAN: tidak ada data login -> kembali ke form login =====</span>
+        <span class="keyword">if</span> (!session.adaDataProfil()) {
+            kembaliKeLogin()
+            <span class="keyword">return</span>
+        }
+
+        <span class="comment">// ===== tampilkan profil dari sesi =====</span>
+        findViewById&lt;TextView&gt;(R.id.tvNama).text  = session.ambilNama()
+        findViewById&lt;TextView&gt;(R.id.tvEmail).text = session.ambilEmail()
+        findViewById&lt;TextView&gt;(R.id.tvWaktu).text = formatWaktu(session.ambilWaktuLogin())
+
+        <span class="comment">// ===== tombol keluar =====</span>
+        findViewById&lt;Button&gt;(R.id.btnLogout).setOnClickListener { keluar() }
+    }
+
+    <span class="comment">// ubah waktu dalam milidetik menjadi tulisan yang enak dibaca</span>
+    <span class="keyword">private fun</span> formatWaktu(millis: Long): String {
+        <span class="keyword">if</span> (millis == 0L) <span class="keyword">return</span> <span class="string">"-"</span>
+        <span class="keyword">val</span> format = SimpleDateFormat(<span class="string">"dd MMM yyyy, HH:mm"</span>, Locale(<span class="string">"id"</span>, <span class="string">"ID"</span>))
+        <span class="keyword">return</span> format.format(Date(millis))
+    }
+
+    <span class="comment">// ... keluar() dan kembaliKeLogin() ditulis pada langkah 10 ...</span>
+}</pre>
+  </div>
+
+  <h3>Dari Kunci ke Tampilan</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>View di dashboard</th><th>Kunci sesi</th><th>Contoh hasil tampil</th></tr></thead>
+      <tbody>
+        <tr><td><span class="inline-code">tvNama</span></td><td><span class="inline-code">nama</span></td><td>Rani</td></tr>
+        <tr><td><span class="inline-code">tvEmail</span></td><td><span class="inline-code">email</span></td><td>rani@example.com</td></tr>
+        <tr><td><span class="inline-code">tvWaktu</span></td><td><span class="inline-code">waktu_login</span></td><td>28 Sep 2026, 09:47</td></tr>
+        <tr><td><span class="inline-code">ivAvatar</span></td><td>&mdash;</td><td>Gambar tetap dari drawable</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-box warning">
+    <div class="info-box-title">&#9888;&#65039; Jangan lupa pengaman di DashboardActivity</div>
+    <p>Pemeriksaan <span class="inline-code">adaDataProfil()</span> membuat dashboard <strong>tidak bisa dibuka</strong> tanpa data login. Tanpa pengaman ini, pengguna yang datanya kebetulan terhapus akan melihat halaman profil yang kosong dan membingungkan.</p>
+  </div>
+
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Mengapa waktunya disimpan sebagai Long?</div>
+    <p>SharedPreferences tidak mengenal tipe tanggal. Karena itu waktu disimpan sebagai <strong>angka milidetik</strong> (hasil <span class="inline-code">System.currentTimeMillis()</span>), lalu diubah menjadi tulisan tanggal memakai <span class="inline-code">SimpleDateFormat</span> saat ditampilkan. Cara ini juga membuat waktu mudah dibandingkan bila diperlukan.</p>
+  </div>
+</section>
+
+<!-- ================= 10 LOGOUT ================= -->
+<section id="logout" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128682;</div>
+    <h2 class="card-title">Langkah 10: Tombol Logout (Ketentuan 7 &amp; 8)</h2>
+  </div>
+
+  <p>Logout artinya <strong>menghapus seluruh data sesi</strong> lalu mengembalikan pengguna ke layar login. Dua langkah itu harus berurutan: hapus dulu, baru pindah layar.</p>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">DashboardActivity.kt - bagian 2: keluar()</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">private fun</span> keluar() {
+    <span class="comment">// 1) hapus seluruh data sesi dari SharedPreferences</span>
+    session.hapusSesi()
+
+    <span class="comment">// 2) kembali ke layar login</span>
+    kembaliKeLogin()
+}
+
+<span class="keyword">private fun</span> kembaliKeLogin() {
+    startActivity(Intent(<span class="keyword">this</span>, LoginActivity::class.java))
+    finish()   <span class="comment">// tutup dashboard</span>
+}</pre>
+  </div>
+
+  <h3>Alur Tombol Keluar</h3>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">Alur logout</span><span class="code-lang">TEKS</span></div>
+    <pre>btnLogout ditekan
+      │
+      ▼
+keluar()
+      ├── session.hapusSesi()
+      │        └── prefs.edit().clear().apply()
+      │              └── file sesi_login.xml kosong kembali
+      │
+      └── kembaliKeLogin()
+               ├── startActivity(Intent(this, LoginActivity::class.java))
+               └── finish()   <span class="comment">&lt;-- dashboard ditutup</span>
+                        │
+                        ▼
+              LoginActivity dibuka ulang
+                        │
+                        └── sudahLogin() == false
+                                 └── form login tampil (wajib login ulang)</pre>
+  </div>
+
+  <h3>Logout Lengkap vs Keluar Sebentar</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Kebutuhan</th><th>Yang dihapus</th><th>Kode</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Logout penuh &mdash; pengguna harus login ulang dari nol</td>
+          <td>Semua data sesi</td>
+          <td><span class="inline-code">prefs.edit().clear().apply()</span></td>
+        </tr>
+        <tr>
+          <td>Hanya &ldquo;tidak ingat saya&rdquo; &mdash; email tetap tersimpan agar form terisi otomatis</td>
+          <td>Satu kunci saja</td>
+          <td><span class="inline-code">prefs.edit().remove(KEY_SUDAH_LOGIN).apply()</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Pada praktikum ini kita memakai <strong>logout penuh</strong> supaya perilakunya jelas: setelah keluar, tidak ada satu pun data sesi yang tertinggal.</p>
+
+  <h3>Kode Lengkap DashboardActivity.kt</h3>
+  <p>Bandingkan hasil pekerjaan Anda dengan versi lengkap berikut.</p>
+  <div class="code-block">
+    <div class="code-header"><span class="code-title">DashboardActivity.kt</span><span class="code-lang">KOTLIN</span></div>
+    <pre><span class="keyword">package</span> com.example.sesisilogin
+
+<span class="keyword">import</span> android.content.Intent
+<span class="keyword">import</span> android.os.Bundle
+<span class="keyword">import</span> android.widget.Button
+<span class="keyword">import</span> android.widget.TextView
+<span class="keyword">import</span> androidx.appcompat.app.AppCompatActivity
+<span class="keyword">import</span> java.text.SimpleDateFormat
+<span class="keyword">import</span> java.util.Date
+<span class="keyword">import</span> java.util.Locale
+
+<span class="keyword">class</span> DashboardActivity : AppCompatActivity() {
+
+    <span class="keyword">private lateinit var</span> session: SessionManager
+
+    <span class="keyword">override fun</span> onCreate(savedInstanceState: Bundle?) {
+        <span class="keyword">super</span>.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_dashboard)
+
+        session = SessionManager(<span class="keyword">this</span>)
+
+        <span class="keyword">if</span> (!session.adaDataProfil()) {
+            kembaliKeLogin()
+            <span class="keyword">return</span>
+        }
+
+        findViewById&lt;TextView&gt;(R.id.tvNama).text  = session.ambilNama()
+        findViewById&lt;TextView&gt;(R.id.tvEmail).text = session.ambilEmail()
+        findViewById&lt;TextView&gt;(R.id.tvWaktu).text = formatWaktu(session.ambilWaktuLogin())
+
+        findViewById&lt;Button&gt;(R.id.btnLogout).setOnClickListener { keluar() }
+    }
+
+    <span class="keyword">private fun</span> formatWaktu(millis: Long): String {
+        <span class="keyword">if</span> (millis == 0L) <span class="keyword">return</span> <span class="string">"-"</span>
+        <span class="keyword">val</span> format = SimpleDateFormat(<span class="string">"dd MMM yyyy, HH:mm"</span>, Locale(<span class="string">"id"</span>, <span class="string">"ID"</span>))
+        <span class="keyword">return</span> format.format(Date(millis))
+    }
+
+    <span class="keyword">private fun</span> keluar() {
+        session.hapusSesi()
+        kembaliKeLogin()
+    }
+
+    <span class="keyword">private fun</span> kembaliKeLogin() {
+        startActivity(Intent(<span class="keyword">this</span>, LoginActivity::class.java))
+        finish()
+    }
+}</pre>
+  </div>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#9989; Cek Hasil Langkah 9&ndash;10</div>
+    <ul style="margin-bottom:0">
+      <li>Dashboard menampilkan nama <strong>Rani</strong>, email <strong>rani@example.com</strong>, dan waktu login yang benar.</li>
+      <li>Tombol <strong>Keluar</strong> ditekan &rarr; kembali ke layar login tanpa mengisi apa pun.</li>
+      <li>Setelah keluar, tutup dan buka lagi aplikasi &rarr; form login tetap muncul (sesi sudah terhapus).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= 11 UJI COBA ================= -->
+<section id="ujicoba" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#128295;</div>
+    <h2 class="card-title">Langkah 11: Uji Coba &amp; Penanganan Kesalahan</h2>
+  </div>
+
+  <h3>Tampilan Hasil</h3>
+  <div class="screens">
+    <figure class="phone">
+      <div class="phone-body"><div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="a-status"><span>09:44</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="a-body">
+            <div class="a-logo">&#128274;</div>
+            <div class="a-title">Masuk ke Akun</div>
+            <div class="a-sub">Silakan isi email dan sandi Anda</div>
+            <div>
+              <div class="a-label">EMAIL</div>
+              <div class="a-field">rani@example.com</div>
+            </div>
+            <div>
+              <div class="a-label">SANDI</div>
+              <div class="a-field err">&#8226;&#8226;&#8226;</div>
+              <div class="a-msg">Sandi minimal 6 karakter</div>
+            </div>
+            <div class="a-check"><span class="a-box">&#10003;</span>Ingat saya</div>
+            <div class="a-alert">Email atau sandi salah</div>
+            <div class="a-btn">Masuk</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Layar 4 &mdash; login gagal: pesan merah pada isian sandi dan pesan kesalahan di bawah form</figcaption>
+    </figure>
+
+    <figure class="phone">
+      <div class="phone-body"><div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="a-head">
+            <div class="a-avatar"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="32" r="32" fill="#dcfce7"/><circle cx="32" cy="26" r="10" fill="#15803d"/><path d="M18,52 a14,14 0 0,1 28,0 z" fill="#15803d"/></svg></div>
+            <div class="nm">Rani</div>
+            <div class="em">rani@example.com</div>
+            <div class="bd">&#10003; Sesi aktif</div>
+          </div>
+          <div class="a-main">
+            <div class="a-card">
+              <div class="k">Terakhir masuk</div>
+              <div class="v">27 Sep 2026, 20:15</div>
+            </div>
+            <div class="a-row"><span class="ic">&#128100;</span>Edit Profil<span class="chev">&rsaquo;</span></div>
+            <div class="a-row"><span class="ic">&#128276;</span>Notifikasi<span class="chev">&rsaquo;</span></div>
+            <div class="a-row"><span class="ic">&#9881;&#65039;</span>Pengaturan<span class="chev">&rsaquo;</span></div>
+            <div class="a-logout">Keluar</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Layar 5 &mdash; aplikasi dibuka lagi keesokan hari: langsung masuk dashboard, form login tidak muncul</figcaption>
+    </figure>
+
+    <figure class="phone">
+      <div class="phone-body"><div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="a-status"><span>20:16</span><span>&#9679;&#9679;&#9679;</span></div>
+          <div class="a-body">
+            <div class="a-logo">&#128274;</div>
+            <div class="a-title">Masuk ke Akun</div>
+            <div class="a-sub">Silakan isi email dan sandi Anda</div>
+            <div>
+              <div class="a-label">EMAIL</div>
+              <div class="a-field empty">nama@email.com</div>
+            </div>
+            <div>
+              <div class="a-label">SANDI</div>
+              <div class="a-field empty">&bull;&bull;&bull;&bull;&bull;&bull;</div>
+            </div>
+            <div class="a-check"><span class="a-box">&#10003;</span>Ingat saya</div>
+            <div class="a-btn">Masuk</div>
+            <div class="a-hint">Akun demo:<br>rani@example.com / 123456</div>
+          </div>
+          <div class="a-toast">Data sesi dihapus</div>
+        </div>
+      </div>
+      <figcaption>Layar 6 &mdash; setelah menekan <b>Keluar</b>: sesi terhapus dan pengguna wajib login ulang</figcaption>
+    </figure>
+  </div>
+
+  <div class="info-box note">
+    <div class="info-box-title">&#128203; Perhatikan selisih waktunya</div>
+    <p>Pada layar 5, waktu login terakhir tertulis <strong>27 Sep 2026, 20:15</strong> &mdash; padahal sekarang 09:47. Artinya aplikasi benar-benar sudah ditutup sejak malam sebelumnya, tetapi sesi masih tersimpan. Inilah yang membedakan SharedPreferences dari variabel biasa.</p>
+  </div>
+
+  <h3>Tabel Pengujian</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>No</th><th>Skenario</th><th>Hasil yang diharapkan</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Aplikasi dibuka pertama kali setelah dipasang</td><td>Layar login tampil; dashboard tidak bisa diakses</td></tr>
+        <tr><td>2</td><td>Tekan Masuk dengan isian kosong</td><td>Pesan merah muncul pada isian email, proses berhenti</td></tr>
+        <tr><td>3</td><td>Isi email benar, sandi 3 karakter</td><td>Pesan merah <strong>Sandi minimal 6 karakter</strong> pada isian sandi</td></tr>
+        <tr><td>4</td><td>Isi email benar (<span class="inline-code">rani@example.com</span>), sandi salah (<span class="inline-code">123457</span>)</td><td>Tulisan <strong>Email atau sandi salah</strong> muncul; pengguna tetap di layar login</td></tr>
+        <tr><td>5</td><td>Login benar dengan <strong>Ingat saya dicentang</strong></td><td>Masuk ke dashboard; nama, email, dan waktu login tampil dengan benar</td></tr>
+        <tr><td>6</td><td>Setelah login (dengan centang), tekan tombol Back</td><td>Keluar dari aplikasi &mdash; tidak kembali ke form login</td></tr>
+        <tr><td>7</td><td>Tutup aplikasi dari daftar aplikasi terakhir, lalu buka lagi</td><td>Sesi dikenali: <strong>langsung</strong> masuk dashboard tanpa mengisi form</td></tr>
+        <tr><td>8</td><td>Matikan ponsel, nyalakan lagi, buka aplikasi</td><td>Sesi tetap ada, langsung masuk dashboard</td></tr>
+        <tr><td>9</td><td>Cek <strong>Device File Explorer</strong> ke folder <span class="inline-code">shared_preferences</span></td><td>Terlihat file <span class="inline-code">sesi_login.xml</span> berisi <span class="inline-code">sudah_login</span>, <span class="inline-code">nama</span>, <span class="inline-code">email</span>, dan <span class="inline-code">waktu_login</span></td></tr>
+        <tr><td>10</td><td>Tekan tombol <strong>Keluar</strong> di dashboard</td><td>Kembali ke layar login; file sesi menjadi kosong</td></tr>
+        <tr><td>11</td><td>Setelah keluar, tutup dan buka lagi aplikasi</td><td>Form login tetap muncul &mdash; <strong>wajib login ulang</strong></td></tr>
+        <tr><td>12</td><td>Login lagi <strong>tanpa</strong> mencentang &ldquo;Ingat saya&rdquo;, lalu tutup dan buka aplikasi</td><td>Form login muncul lagi, tetapi email sebelumnya sudah terisi otomatis</td></tr>
+        <tr><td>13</td><td>Setelah blok 12, isi sandi langsung tanpa menulis email</td><td>Login berhasil &mdash; email yang terisi otomatis ikut terkirim</td></tr>
+        <tr><td>14</td><td>Pengaturan ponsel &rarr; Apps &rarr; <strong>Clear data</strong> &rarr; buka aplikasi</td><td>Seluruh sesi hilang &mdash; wajib login ulang</td></tr>
+        <tr><td>15</td><td>Coba buka <span class="inline-code">DashboardActivity</span> saat tidak ada sesi</td><td>Aplikasi langsung mengembalikan pengguna ke layar login</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Kesalahan Umum &amp; Solusinya</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Gejala</th><th>Penyebab</th><th>Solusi</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Setelah login, aplikasi tetap meminta login lagi saat dibuka</td>
+          <td>Urutan pemeriksaan salah: <span class="inline-code">session.sudahLogin()</span> diperiksa sebelum <span class="inline-code">simpanSesi()</span>, atau <span class="inline-code">apply()</span> belum dipanggil</td>
+          <td>Pastikan <span class="inline-code">simpanSesi()</span> dijalankan pada login berhasil dan rangkaian <span class="inline-code">put...</span> ditutup <span class="inline-code">apply()</span></td>
+        </tr>
+        <tr>
+          <td>Aplikasi langsung masuk dashboard setiap dibuka, padahal &ldquo;Ingat saya&rdquo; tidak dicentang</td>
+          <td><span class="inline-code">putBoolean(KEY_SUDAH_LOGIN, ...)</span> diisi <span class="inline-code">true</span> secara tetap</td>
+          <td>Isi dengan nilai centangnya: <span class="inline-code">cbIngatSaya.isChecked</span></td>
+        </tr>
+        <tr>
+          <td>Nama dan email di dashboard kosong</td>
+          <td>Kunci saat menyimpan berbeda dengan kunci saat membaca</td>
+          <td>Pakai konstanta <span class="inline-code">KEY_NAMA</span> dan <span class="inline-code">KEY_EMAIL</span> dari <span class="inline-code">SessionManager</span></td>
+        </tr>
+        <tr>
+          <td>Menekan Back dari dashboard kembali ke form login</td>
+          <td><span class="inline-code">finish()</span> belum dipanggil setelah <span class="inline-code">startActivity()</span></td>
+          <td>Tambahkan <span class="inline-code">finish()</span> di dalam <span class="inline-code">bukaDashboard()</span></td>
+        </tr>
+        <tr>
+          <td>Setelah Keluar, dashboard masih bisa dibuka lewat tombol Back</td>
+          <td>Activity dashboard tidak ditutup saat kembali ke login</td>
+          <td>Panggil <span class="inline-code">finish()</span> di <span class="inline-code">kembaliKeLogin()</span></td>
+        </tr>
+        <tr>
+          <td>Aplikasi berhenti dengan <em>ClassNotFoundException</em></td>
+          <td>Nama Activity di Manifest tidak sesuai nama kelas setelah <em>rename</em></td>
+          <td>Periksa <span class="inline-code">android:name</span> pada Manifest &mdash; tulis sama persis dengan nama kelasnya</td>
+        </tr>
+        <tr>
+          <td>Sesi masih terisi walau pengguna sudah logout</td>
+          <td>Memakai <span class="inline-code">remove()</span> untuk satu kunci, sedangkan yang dihapus seharusnya semuanya</td>
+          <td>Gunakan <span class="inline-code">edit().clear().apply()</span> pada logout penuh</td>
+        </tr>
+        <tr>
+          <td>Waktu login tertulis angka panjang, bukan tanggal</td>
+          <td>Nilai <span class="inline-code">Long</span> ditampilkan langsung tanpa diformat</td>
+          <td>Ubah dulu dengan <span class="inline-code">SimpleDateFormat</span> seperti pada <span class="inline-code">formatWaktu()</span></td>
+        </tr>
+        <tr>
+          <td>Sandi terlihat jelas saat diketik</td>
+          <td>Isian sandi memakai <span class="inline-code">inputType="text"</span></td>
+          <td>Ubah menjadi <span class="inline-code">android:inputType="textPassword"</span></td>
+        </tr>
+        <tr>
+          <td>Data pengguna terbaca saat ponsel di-<i>root</i></td>
+          <td>Isi SharedPreferences tidak terenkripsi</td>
+          <td>Jangan simpan sandi di SharedPreferences; untuk data rahasia gunakan penyimpanan terenkripsi</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= 12 PENUTUP ================= -->
+<section id="penutup" class="card">
+  <div class="card-header">
+    <div class="card-icon">&#9989;</div>
+    <h2 class="card-title">Langkah 12: Checklist Ketentuan &amp; Tugas</h2>
+  </div>
+
+  <p>Centang setiap ketentuan berikut pada aplikasi Anda. Bila semuanya tercentang, praktikum dinyatakan selesai.</p>
+
+  <h3>Checklist 10 Ketentuan</h3>
+  <ol class="checklist">
+    <li><strong>Layar login</strong> &mdash; <span class="inline-code">LoginActivity</span> berisi isian email, isian sandi, checkbox &ldquo;Ingat saya&rdquo;, dan tombol Masuk.</li>
+    <li><strong>Layar dashboard profil</strong> &mdash; <span class="inline-code">DashboardActivity</span> berisi avatar, nama, email, dan waktu login terakhir.</li>
+    <li><strong>Data sesi disimpan</strong> &mdash; login berhasil memanggil <span class="inline-code">simpanSesi()</span> yang menulis ke SharedPreferences dengan <span class="inline-code">apply()</span>.</li>
+    <li><strong>Pemeriksaan sesi</strong> &mdash; <span class="inline-code">LoginActivity</span> memeriksa <span class="inline-code">sudahLogin()</span> di <span class="inline-code">onCreate()</span> sebelum menampilkan form.</li>
+    <li><strong>Tanpa data login &rarr; login ulang</strong> &mdash; bila sesi tidak ada atau sudah dihapus, form login tampil dan dashboard tidak bisa dibuka.</li>
+    <li><strong>Profil tampil dari sesi</strong> &mdash; nama, email, dan waktu login diambil dari SharedPreferences, bukan dari variabel sementara.</li>
+    <li><strong>Tombol Logout</strong> &mdash; tombol <strong>Keluar</strong> tersedia di dashboard.</li>
+    <li><strong>Logout menghapus sesi</strong> &mdash; <span class="inline-code">hapusSesi()</span> menjalankan <span class="inline-code">clear().apply()</span> lalu mengembalikan pengguna ke layar login.</li>
+    <li><strong>Pilihan &ldquo;Ingat saya&rdquo;</strong> &mdash; nilainya menentukan apakah sesi dipakai lagi pada pembukaan berikutnya.</li>
+    <li><strong>Satu kelas SessionManager</strong> &mdash; semua nama kunci dan proses baca-tulis sesi terpusat di kelas ini.</li>
+  </ol>
+
+  <h3>Pengembangan Opsional (nilai tambah)</h3>
+  <ol class="step-list">
+    <li><strong>Layar splash:</strong> tampilkan logo 1,5 detik di depan sebelum memeriksa sesi, seperti aplikasi pada umumnya.</li>
+    <li><strong>Waktu kadaluarsa sesi:</strong> simpan batas waktu; bila <span class="inline-code">waktu_login</span> sudah lebih dari 7 hari, paksa login ulang.</li>
+    <li><strong>Foto profil:</strong> tambahkan pilihan avatar seperti pada materi teori, lalu simpan indeksnya di sesi yang sama.</li>
+    <li><strong>Sapaan waktu:</strong> tampilkan &ldquo;Selamat pagi/siang/malam&rdquo; sesuai jam perangkat saat dashboard dibuka.</li>
+    <li><strong>Ingat email saja:</strong> saat logout, hapus hanya kunci <span class="inline-code">sudah_login</span> supaya email tetap terisi di form login.</li>
+    <li><strong>Ganti sandi:</strong> tambahkan halaman pengaturan yang menyimpan sandi baru memakai <em>hash</em> sederhana &mdash; jangan pernah menyimpan sandi asli.</li>
+  </ol>
+
+  <h3>What&rsquo;s Next &mdash; Kapan Memakai Cara Penyimpanan yang Mana</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>Kebutuhan</th><th>Cara penyimpanan</th><th>Alasan</th></tr></thead>
+      <tbody>
+        <tr><td>Membawa data dari satu layar ke layar lain pada sesi yang sama</td><td><b>Intent Extra</b></td><td>Datanya sementara; habis dipakai tidak perlu disimpan</td></tr>
+        <tr><td>Menyimpan penanda login, pengaturan, dan profil singkat</td><td><b>SharedPreferences</b></td><td>Data kecil dan sederhana, cukup pasangan kunci&ndash;nilai</td></tr>
+        <tr><td>Menyimpan sesi login aplikasi nyata</td><td><b>SharedPreferences</b> (token) atau <b>DataStore</b></td><td>Yang disimpan hanya token, bukan email dan sandi</td></tr>
+        <tr><td>Menyimpan daftar data: riwayat, pesanan, nilai mahasiswa</td><td><b>Room / SQLite</b></td><td>Jumlahnya banyak dan perlu dicari atau diurutkan</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Kesimpulan pentingnya: <strong>SharedPreferences bukan pengganti database</strong>. Ia paling tepat untuk data kecil seperti penanda sesi &mdash; dan itulah yang baru saja kita bangun.</p>
+
+  <div class="info-box tip">
+    <div class="info-box-title">&#128161; Ketentuan Pengumpulan</div>
+    <ul style="margin-bottom:0">
+      <li>Project Android Studio (zip) &mdash; dipastikan dapat di-<em>build</em> tanpa error.</li>
+      <li>Laporan singkat berisi <strong>tangkapan layar</strong> empat kondisi: form login kosong, pesan salah sandi, dashboard profil, dan layar login setelah logout.</li>
+      <li>Tangkapan layar isi file <span class="inline-code">sesi_login.xml</span> dari Device File Explorer, sebagai bukti sesi tersimpan.</li>
+      <li>Penjelasan singkat: kapan aplikasi langsung masuk dashboard, dan kapan pengguna wajib login ulang.</li>
+    </ul>
+  </div>
+</section>
+
+</div>
+
+<footer class="main-footer">
+  <p>Modul Praktikum &mdash; Studi Kasus Login Sesi &amp; Dashboard Profil dengan SharedPreferences</p>
+  <p style="opacity:.7;font-size:.85rem">SharedPreferences &bull; SessionManager &bull; Intent &bull; Auto-Login &bull; Logout</p>
+</footer>
+
+</div>
+<!-- /content -->
+
+<button class="scroll-top" id="scrollTop" onclick="scrollToTop()">&#8593;</button>
+
+<script>
+/* Buka / tutup menu samping (khusus layar kecil) */
+function toggleNav(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+
+/* Tandai bagian yang sedang dibaca pada menu samping */
+var navLinks = Array.prototype.slice.call(document.querySelectorAll('#sidebarNav a'));
+var navSections = navLinks.map(function(a){
+  return document.querySelector(a.getAttribute('href'));
+});
+var scrollBtn = document.getElementById('scrollTop');
+
+function perbaruiMenu(){
+  var posisi = window.scrollY + 150;
+  var aktif = navSections[0];
+  navSections.forEach(function(sec){
+    if (sec && sec.offsetTop <= posisi) { aktif = sec; }
+  });
+  navLinks.forEach(function(a){
+    a.classList.toggle('active', !!aktif && a.getAttribute('href') === '#' + aktif.id);
+  });
+
+  if (window.scrollY > 400) { scrollBtn.classList.add('visible'); }
+  else { scrollBtn.classList.remove('visible'); }
+}
+
+window.addEventListener('scroll', perbaruiMenu);
+window.addEventListener('resize', perbaruiMenu);
+perbaruiMenu();
+
+/* Tutup menu samping setelah tautan dipilih pada layar kecil */
+navLinks.forEach(function(a){
+  a.addEventListener('click', function(){
+    if (window.innerWidth <= 992) {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('show');
+    }
+  });
+});
+
+function scrollToTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+</script>
+
+</body>
+</html>
